@@ -186,6 +186,9 @@ if __name__ == '__main__':
 
     schedule.every().day.at('1:00').do(send_email, email_service,
                                        sheet_service)
+                                       
+    msg = create_message('refinerybiblereadingplan@gmail.com', 'mccaskillmr1855@aguafria.org', 'Refinery Students Bible Reading Plan Notifier Started Up! ', 'Current Time: {}'.format(datetime.datetime.now()))
+    send_message(email_service, 'refinerybiblereadingplan@gmail.com', msg)
 
     while True:
         schedule.run_pending()
