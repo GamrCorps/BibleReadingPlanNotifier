@@ -22,6 +22,46 @@ SCOPES = ('https://www.googleapis.com/auth/gmail.compose',
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Bible Reading Plan Notifier'
 
+HTML_TEMPLATE = '''<html>
+
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <style>
+      .header {{
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+      }}
+      
+      .verse {{
+        font-family: 'Open Sans', sans-serif;
+      }}
+      
+      button {{
+        background-color: #609dff;
+        width: 150px;
+        height: 50px;
+      }}
+      
+      .button-div {{
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+        /*font-size: 20px;*/
+      }}
+
+    </style>
+  </head>
+
+  <body>
+    <h1 class="header">Refinery Students Bible Reading Plan</h1>
+    <h3 class="header">Today's ({}) Verse(s):</h3>
+    <h2 class="header">{}</h2>
+    <div class="button-div">
+      <a href="{}">Read Online</a>
+    </div>
+  </body>
+
+</html>'''
+
 
 def send_message(service, user_id, message):
     try:
@@ -110,7 +150,7 @@ def get_credentials():
 def send_email(email_service, sheet_service):
     spreadsheet_id = '1hSLmVVBJBwClc2tqMX0mwvQ4b3kwrRq4QJGuh_By26A'
     verse_range = 'Verses!A:B'
-    email_range = 'Users!A:A'
+    email_range = 'Users!A:B'
 
     today = str(datetime.date.today())
 
@@ -129,10 +169,9 @@ def send_email(email_service, sheet_service):
 
     if verse:
         for e in email_list:
-            msg = create_message('refinerybiblereadingplan@gmail.com',
-                                 e[0], 'Verse for ' + today, verse)
-            send_message(email_service, 'refinerybiblereadingplan@gmail.com',
-                         msg)
+            #msg = create_message('refinerybiblereadingplan@gmail.com', e[0], 'Refinery Students Bible Reading Plan for ' + today, verse + '\nhttps://www.biblegateway.com/passage/?search={}&version={}'.format(verse.replace(':','%3A').replace(';','%3B').replace(' ','+'), e[1]))
+            msg = create_message_html('refinerybiblereadingplan@gmail.com', e[0], 'Refinery Students Bible Reading Plan for ' + today, HTML_TEMPLATE.format(today, verse.replace(';', '<br>'), 'https://www.biblegateway.com/passage/?search={}&version={}'.format(verse.replace(':','%3A').replace(';','%3B').replace(' ','+'), e[1])))
+            send_message(email_service, 'refinerybiblereadingplan@gmail.com', msg)
 
     return None
 
@@ -145,9 +184,10 @@ if __name__ == '__main__':
 
     sheet_service = discovery.build('sheets', 'v4', credentials=credentials)
 
-    schedule.every().day.at('7:00').do(send_email, email_service,
+    schedule.every().day.at('1:00').do(send_email, email_service,
                                        sheet_service)
 
     while True:
         schedule.run_pending()
-        time.sleep(300)
+        time.sleep(1)
+        #time.sleep(300)
